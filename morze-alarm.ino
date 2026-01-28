@@ -11,7 +11,7 @@
 int RTCrstPin = A3;
 int RTCclkPin = A1;
 int RTCdatPin = A2;
-ClearDS1302 RTC1(RTCdatPin, RTCrstPin, RTCclkPin);
+ClearDS1302 RTC1 = ClearDS1302(RTCdatPin, RTCrstPin, RTCclkPin);
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 32
@@ -84,7 +84,8 @@ void setup()
 
   display.display();
 
-  //RTC1.set.time(0, 30, 12, 2, 26, 7, 2025);
+  //RTC1.set.time.SetAll(int second, int minute, int hour, int day, int date, int month, int year, bool ClockRegister)
+  RTC1.set.time.SetAll(0, 30, 12, 2, 26, 7, 2025, false);
 
   delay(10);
 }
@@ -94,6 +95,7 @@ void setup()
 
 char pressed_key;
 
+char time_str[100];
 void loop()
 {
 
@@ -177,7 +179,9 @@ char key1 = keypad.getKey();
 
     display_updated = millis();
 
-    //Serial.println(RTC1.get.time.full());
+  byte * timestr1 = RTC1.get.time.GetAll();
+
+    Serial.println((char *) timestr1);
   }
 
 }
