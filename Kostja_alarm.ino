@@ -5,7 +5,13 @@
 #include <Adafruit_SSD1306.h>
 
 #include <Keypad.h>
-#include <Bounce2.h>
+
+#include <ClearDS1302.h>
+
+int RTCrstPin = A3;
+int RTCclkPin = A1;
+int RTCdatPin = A2;
+ClearDS1302 RTC1(RTCdatPin, RTCrstPin, RTCclkPin);
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 32
@@ -26,10 +32,9 @@ byte rowPins[ROWS] = {2, 3, 4, 5}; // Connect to the row pinouts of the keypad
 byte colPins[COLS] = {6, 7, 8, 9}; // Connect to the column pinouts of the keypad
 
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
-Bounce debouncer = Bounce();
+
 
 #define PIN_BUZZER 11
-
 
 int hour = 0;
 int min = 0;
@@ -38,6 +43,12 @@ int msec = 0;
 
 unsigned long lastTick=0;
 
+#define STATE_IDLE 0
+#define STATE_EDIT 1
+#define STATE_ALARM 2
+
+int current_state = 0;
+char current_state_name[20];
 
 void setup()
 {
@@ -46,8 +57,6 @@ void setup()
   
   Serial.println("Starting...");
 
-  debouncer.attach(0, INPUT_PULLUP);
-  debouncer.interval(25);
 
   pinMode(PIN_BUZZER, 11);
 
@@ -74,6 +83,8 @@ void setup()
   display.print(msec);
 
   display.display();
+
+  //RTC1.set.time(0, 30, 12, 2, 26, 7, 2025);
 
   delay(10);
 }
@@ -143,6 +154,8 @@ char key1 = keypad.getKey();
     hour = 0;
   }
   
+
+
   if(millis() > display_updated + DISPLAY_INTERVAL){
 
     display.setCursor(0,0);
@@ -163,7 +176,8 @@ char key1 = keypad.getKey();
     display.display();
 
     display_updated = millis();
-  
+
+    //Serial.println(RTC1.get.time.full());
   }
 
 }
