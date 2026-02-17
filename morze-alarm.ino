@@ -434,6 +434,10 @@ void draw_display() {
         default:
           drawClock();
           drawAlarmClock(false);
+          char arr[2] = {pressed_key, '\0'};
+          u8g2.drawStr(110, 60, arr);
+
+
       }
   } while (u8g2.nextPage());
 }
