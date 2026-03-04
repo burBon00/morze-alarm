@@ -24,13 +24,27 @@ U8G2_SSD1306_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
 const byte ROWS = 4;  // Four rows
 const byte COLS = 4;  // Four columns
 char keys[ROWS][COLS] = {
-  { 'A', '3', '2', '1' },
-  { 'B', '6', '5', '4' },
-  { 'C', '9', '8', '7' },
-  { 'D', '#', '0', '*' }
+  { '1', '2', '3', 'A' },
+  { '4', '5', '6', 'B' },
+  { '7', '8', '9', 'C' },
+  { '*', '0', '#', 'D' }
 };
 byte rowPins[ROWS] = { 2, 3, 4, 5 };  // Connect to the row pinouts of the keypad
 byte colPins[COLS] = { 6, 7, 8, 9 };  // Connect to the column pinouts of the keypad
+
+
+#define MORZE_MAX 10
+char morze[MORZE_MAX][6] = {
+{'-','-','-','-','-','\0'},
+{'.','-','-','-','-','\0'},
+{'.','.','-','-','-','\0'},
+{'.','.','.','-','-','\0'},
+{'.','.','.','.','-','\0'},
+{'.','.','.','.','.','\0'},
+{'-','.','.','.','.','\0'},
+{'-','-','.','.','.','\0'},
+{'-','-','-','.','.','\0'},
+{'-','-','-','-','.','\0'}};
 
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 char key;
@@ -190,7 +204,10 @@ void state_idle_run() {
 
   RtcDateTime nowTime = Rtc.GetDateTime();
 
-  if (myAlarm.alarmEnabled && !alarmWasTriggered && nowTime.Hour() == myAlarm.alarmHour && nowTime.Minute() == myAlarm.alarmMinute && nowTime.Second() == 0) {
+  if (myAlarm.alarmEnabled && !alarmWasTriggered 
+      && nowTime.Hour() == myAlarm.alarmHour 
+      && nowTime.Minute() == myAlarm.alarmMinute 
+      && nowTime.Second() == 0) {
 
     alarmWasTriggered = true;
     switch_state(STATE_ALARM);
@@ -298,13 +315,24 @@ const int MAX_ALARM_TIME = 10 * 1000;  // 1 minute
 elapsedMillis buzzerTimer;
 elapsedMillis alarmTimer;
 
+char * alarm_puzzle;
+
 void state_alarm_enter() {
   alarmTimer = 0;
   buzzerTimer = 0;
   buzzerON = true;
 
+  int digit = random(MORZE_MAX);
+
+  alarm_puzzle = morze[digit];
+
   Serial.print("state_alarm_enter Alarm timer: ");
+  
   Serial.println(alarmTimer);
+  Serial.print(digit);
+  Serial.print("=>");
+  Serial.print(alarm_puzzle);
+
 }
 
 void state_alarm_run() {
@@ -331,6 +359,8 @@ void state_alarm_run() {
 }
 
 void switch_state(int state) {
+  edit_alarm_position = 0;
+  
   if (state != current_state) {
     Serial.print("Switch state ");
     Serial.print(current_state);
@@ -448,7 +478,7 @@ void displayAlarm()
 
   int y = 30;
   int x = 10;
-  u8g2.drawStr(x, y, "12345");
+  u8g2.drawStr(x, y, alarm_puzzle);
 }
 
 void drawClock() {
@@ -483,8 +513,9 @@ void drawAlarmClock(bool always_show) {
     u8g2.drawGlyph(x, y, '0');  // Icon alarm disabled
   }
 
+  u8g2.setFont(u8g2_font_logisoso16_tn);
   if (myAlarm.alarmEnabled || always_show) {
-    u8g2.setFont(u8g2_font_logisoso16_tn);
+    
     y = 58;
     x += 25;
     printDigits(x, y, myAlarm.alarmHour);
